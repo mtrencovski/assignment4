@@ -1,0 +1,142 @@
+import csv
+import pandas as pd
+
+class Car:
+    def __init__(self, brand, year, model):
+        self.brand = brand
+        self.year = year
+        self.model = model
+
+    def __str__(self):
+        return f"{self.brand} - {self.year} - {self.model}"
+
+class CarCollection:
+    filename = 'data.csv'
+
+    def __init__(self):
+        self.cars = []
+
+    def load_from_csv(self, filename):
+        """Loads cars from a CSV file."""
+        try:
+            with open(filename, mode='r', newline='') as file:
+                reader = csv.reader(file)
+                self.cars = [Car(*row) for row in reader]
+        except FileNotFoundError:
+            print(f"File {filename} not found. Starting with an empty collection.")
+
+    def save_to_csv(self, filename):
+        """Saves cars to a CSV file."""
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            for car in self.cars:
+                writer.writerow([car.brand, car.year, car.model])
+
+    def display_cars(self):
+        """Displays all cars in the collection."""
+        if not self.cars:
+            print("No cars in the collection.")
+            return
+        for i, car in enumerate(self.cars, start=1):
+            print(f"{i}. {car}")
+
+    def add_car(self, brand, year, model):
+        """Adds a new car to the collection."""
+        new_car = Car(brand, year, model)
+        self.cars.append(new_car)
+
+    def modify_car(self, index, brand=None, year=None, model=None):
+        """Modifies an existing car in the collection."""
+        if 0 <= index < len(self.cars):
+            car = self.cars[index]
+            if brand:
+                car.brand = brand
+            if year:
+                car.year = year
+            if model:
+                car.model = model
+        else:
+            print("Invalid index. No car modified.")
+
+    def visualize_data(self):
+        """Visualizes the data as an ASCII bar graph or pivot table."""
+        if not self.cars:
+            print("No cars in the collection to visualize.")
+            return
+
+        print("\nChoose a visualization method:")
+        print("1. ASCII Bar Graph")
+        print("2. Pivot Table")
+        choice = input("Enter your choice: ")
+
+        # Convert cars to a DataFrame for pandas operations
+        data = [{'Brand': car.brand, 'Year': car.year, 'Model': car.model} for car in self.cars]
+        df = pd.DataFrame(data)
+
+        if choice == '1':
+            # Count cars by brand
+            brand_counts = df['Brand'].value_counts()
+
+            # Display ASCII bar graph
+            print("\nCar Count by Manufacturer:")
+            max_width = 50  # Maximum width of the bar in characters
+            max_count = brand_counts.max() if not brand_counts.empty else 1
+
+            for brand, count in brand_counts.items():
+                bar_length = int((count / max_count) * max_width)
+                print(f"{brand:15}: {'#' * bar_length} ({count})")
+
+        elif choice == '2':
+            # Create a pivot table
+            pivot = df.pivot_table(index='Brand', values='Model', aggfunc='count', margins=True, margins_name='Total')
+            pivot.rename(columns={'Model': 'Count'}, inplace=True)
+
+            print("\nPivot Table (Car Count by Manufacturer):")
+            print(pivot)
+
+        else:
+            print("Invalid choice. Returning to the menu.")
+
+# Example usage
+def main():
+    manager = CarCollection()
+    manager.load_from_csv('data.csv')
+
+    while True:
+        print("\nCar Collection Manager")
+        print("1. Display cars")
+        print("2. Add car")
+        print("3. Modify car")
+        print("4. Visualize data")
+        print("5. Save and exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            manager.display_cars()
+        elif choice == '2':
+            brand = input("Enter car brand: ")
+            year = input("Enter car year: ")
+            model = input("Enter car model: ")
+            manager.add_car(brand, year, model)
+        elif choice == '3':
+            manager.display_cars()
+            try:
+                index = int(input("Enter the number of the car to modify: ")) - 1
+                brand = input("Enter new brand (or leave blank): ")
+                year = input("Enter new year (or leave blank): ")
+                model = input("Enter new model (or leave blank): ")
+                manager.modify_car(index, brand or None, year or None, model or None)
+            except ValueError:
+                print("Invalid input. Please enter a valid number.")
+        elif choice == '4':
+            manager.visualize_data()
+        elif choice == '5':
+            manager.save_to_csv('data.csv')
+            print("Changes saved. Exiting.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
