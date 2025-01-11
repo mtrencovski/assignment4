@@ -220,7 +220,7 @@ def main():
                 year = input("Enter new year (or leave blank): ")
                 model = input("Enter new model (or leave blank): ")
                 # Modify the selected car's details
-                manager.modify_car(index, brand or str, year or int, model or str)
+                manager.modify_car(index, brand or None, year or None, model or None)
             except ValueError:
                 # Handle invalid input for selecting the car to modify
                 print("Invalid input. Please enter a valid number.")
