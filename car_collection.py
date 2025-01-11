@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 
+
 class Car:
     def __init__(self, brand, year, model):
         self.brand = brand
@@ -9,6 +10,7 @@ class Car:
 
     def __str__(self):
         return f"{self.brand} - {self.year} - {self.model}"
+
 
 class CarCollection:
     filename = 'data.csv'
@@ -217,8 +219,8 @@ def main():
                 brand = input("Enter new brand (or leave blank): ")
                 year = input("Enter new year (or leave blank): ")
                 model = input("Enter new model (or leave blank): ")
-                # Modify the selected car's details, passing None if no value is entered
-                manager.modify_car(index, brand or None, year or None, model or None)
+                # Modify the selected car's details
+                manager.modify_car(index, brand or str, year or int, model or str)
             except ValueError:
                 # Handle invalid input for selecting the car to modify
                 print("Invalid input. Please enter a valid number.")
@@ -238,6 +240,7 @@ def main():
         # If the user inputs an invalid option, inform them and prompt again
         else:
             print("Invalid choice. Please try again.")
+
 
 if __name__ == "__main__":
     main()
