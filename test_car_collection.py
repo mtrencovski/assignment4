@@ -1,7 +1,11 @@
 import unittest
 from unittest import mock
 from io import StringIO
+import io
+from unittest.mock import patch
+
 from car_collection import Car, CarCollection
+
 
 class TestCarCollection(unittest.TestCase):
     def setUp(self):
@@ -84,28 +88,55 @@ class TestCarCollection(unittest.TestCase):
             self.assertIn("Ford", output)
 
     def test_visualize_data_pivot_table(self):
-        """Test visualizing data as a pivot table."""
-        with mock.patch("builtins.input", return_value="2"), mock.patch("sys.stdout", new=StringIO()) as buf:
-            self.manager.visualize_data()
-            output = buf.getvalue()
-            self.assertIn("Pivot Table", output)
-            self.assertIn("Toyota", output)
-            self.assertIn("Honda", output)
-            self.assertIn("Ford", output)
+        """Test that the pivot table for car data displays correctly."""
+        # Add test data to the CarCollection
+        self.manager.add_car('Toyota', '2021', 'Corolla')
+        self.manager.add_car('Toyota', '2018', 'Camry')
+        self.manager.add_car('Ford', '2020', 'Focus')
+        self.manager.add_car('Ford', '2020', 'Focus')
+
+        # Redirect stdout to capture printed output
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            # Simulate the user choosing option '5' for the new pivot table option
+            with patch('builtins.input', return_value='5'):
+                self.manager.visualize_data()
+
+            output = mock_stdout.getvalue()
+
+        # Check if pivot table header and key labels exist in the output
+        self.assertIn("Pivot Table (Car Count by Manufacturer and Year):", output)
+        self.assertIn("Toyota", output)
+        self.assertIn("Ford", output)
+        self.assertIn("2021", output)
+        self.assertIn("2020", output)
+        self.assertIn("2018", output)
+
+        # Check that the 'Car Count' column and 'Total' row are present
+        self.assertIn("Car Count", output)
+        self.assertIn("Total", output)
+
+        # Validate the presence of specific car counts in the output
+        self.assertIn("3", output)  # 3 Toyotas in 2020 (2 Corolla, 1 Camry)
+        self.assertIn("2", output)  # 2 Fords in 2020
+        self.assertIn("1", output)  # 1 Toyota in 2021
 
     def test_visualize_data_invalid_choice(self):
-        """Test visualizing data with an invalid choice."""
-        with mock.patch("builtins.input", return_value="3"), mock.patch("sys.stdout", new=StringIO()) as buf:
+        with patch('builtins.input', side_effect=['9']), patch('sys.stdout', new_callable=io.StringIO) as mock_stdout:
             self.manager.visualize_data()
-            output = buf.getvalue().strip()
+            output = mock_stdout.getvalue().strip()
+
             expected_output = (
                 "Choose a visualization method:\n"
-                "1. ASCII Bar Graph\n"
-                "2. Pivot Table\n"
+                "1. ASCII Bar Graph (Car Count by Manufacturer)\n"
+                "2. ASCII Bar Graph (Car Count by Model Type)\n"
+                "3. ASCII Bar Graph (Car Count by Year)\n"
+                "4. Pivot Table (Car Count by Manufacturer and Model Type)\n"
+                "5. Pivot Table (Car Count by Manufacturer and Year)\n"
                 "Invalid choice. Returning to the menu."
             )
+
             self.assertEqual(output, expected_output)
+
 
 if __name__ == "__main__":
     unittest.main()
-
